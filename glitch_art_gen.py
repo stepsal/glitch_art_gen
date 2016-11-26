@@ -4,12 +4,11 @@
 import os
 from PIL import Image, ImageDraw, ImageOps
 import argparse
-from random import randint, random, sample
+from random import randint, random, sample, choice
 import binascii
 OUTPUT_FORMAT = ".png"
 IMAGE_FORMATS = ['.jpg', '.jpeg', '.png', '.tif', '.bmp', 'gif', 'tiff']
 
-#set the image size manually
 
 def save_image(image, prefix):
     random_hash = str(binascii.b2a_hex(os.urandom(15)))[2:-1]
@@ -35,11 +34,15 @@ def load_images(input_dir):
     return images
 
 
-def resize_images(images, size="max"):
+def resize_images(images, size="fixed"):
     '''Resize all images to the max or min dimensions of the images'''
+    fixed = (800, 800)
     size_dict = {'max': max, 'min': min}
-    dims = list(map(size_dict[size], zip(*[y.size for y in images])))
-    resized_images = [image.resize((800,800), Image.ANTIALIAS) for image in images]
+    if size == "fixed":
+        dims = fixed
+    else:
+        dims = list(map(size_dict[size], zip(*[y.size for y in images])))
+    resized_images = [image.resize(dims, Image.ANTIALIAS) for image in images]
     return resized_images
 
 
@@ -73,8 +76,6 @@ def create_block_mask(image, threshold=500, block_size=10):
             block_draw.rectangle(section, (255, 255, 255))
         else:
             pass
-    print("block_size {0}".format(block_size))
-    # block_mask_image.show()
     block_mask_image = block_mask_image.convert("L")
     return block_mask_image
 
@@ -90,7 +91,7 @@ def pixelate(input_image, pixelsize=20):
 def random_pixel_mask(input_image, flip=True, threshold=400):
     w, h = input_image.size
     rand_pix_size = randint(5, 20)
-    rand_block_size = randint(10, 20)
+    rand_block_size = randint(5, 20)
     pixelated_img = pixelate(input_image, pixelsize=rand_pix_size)
     pix_block_mask = create_block_mask(pixelated_img, threshold=threshold, block_size=rand_block_size)
     if flip:
@@ -114,8 +115,6 @@ def random_channel_merge(images):
 
 
 def combine_images_with_mask(image1, image2, pixelmask):
-    # len 3 - too many images? or cycle over and comibe
-    # convert to pixelmask on the fly
     return Image.composite(image1, image2, pixelmask)
 
 
@@ -127,14 +126,10 @@ def twin_random_channel_pixel_masking(input_images, threshold=400):
     return output_image
 
 
-def glitch_art_generator(images, num_images=3, random_orientation=False, threshold=400):
-    # more randomisation in the functions. lip left right versus other orientation.
-    # random orientation
-    #add the created images to the list
+def glitch_art_generator(images, threshold=400):
     image1 = twin_random_channel_pixel_masking(images, threshold=threshold)
     image2 = twin_random_channel_pixel_masking(images, threshold=(threshold/2))
-    #image2 = random_channel_merge(images)
-    image1 = image1.transpose(Image.FLIP_LEFT_RIGHT)
+    image1 = image1.transpose(choice([Image.FLIP_LEFT_RIGHT, Image.FLIP_TOP_BOTTOM]))
     random_pix_mask = random_pixel_mask(image1, threshold=(threshold))
     output_image = combine_images_with_mask(image1, image2, random_pix_mask)
     return output_image
@@ -142,11 +137,11 @@ def glitch_art_generator(images, num_images=3, random_orientation=False, thresho
 
 def main():
     input_images = load_images(INPUT_DIR)
-    input_images = resize_images(input_images, size="min")
+    input_images = resize_images(input_images, size="fixed")
     for x in range(0,NUM_IMAGES):
-        output = glitch_art_generator(input_images, NUM_IMAGES, True, threshold=randint(150,THRESH_VAL))
+        output = glitch_art_generator(input_images, threshold=randint(100,THRESH_VAL))
         output.show()
-        save_image(output, "gg_test")
+        save_image(output, "g_art_gen")
 
 
 if __name__ == "__main__":
@@ -155,7 +150,7 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--show_image", dest="SHOW_IMAGE", default=True, help="Display Images on Creation")
     parser.add_argument("-t", "--threshold", dest="THRESH_VAL", default=400, type=int, help="Threshold Value")
     parser.add_argument("-i", "--input", dest="INPUT_DIR",
-                        default="/home/stephen.salmon/Pictures/test_input/three/", help="Image Input Directory")
+                        default="./input/", help="Image Input Directory")
     try:
         args = parser.parse_args()
     except:
