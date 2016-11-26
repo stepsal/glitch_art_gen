@@ -79,7 +79,7 @@ def create_block_mask(image, threshold=500, block_size=10):
     return block_mask_image
 
 
-def pixelate(input_image, pixelsize=30):
+def pixelate(input_image, pixelsize=20):
     input_image = input_image.resize((int(input_image.size[0] / pixelsize),
                                 int(input_image.size[1] / pixelsize)), Image.NEAREST)
     image = input_image.resize((int(input_image.size[0] * pixelsize),
@@ -89,8 +89,8 @@ def pixelate(input_image, pixelsize=30):
 
 def random_pixel_mask(input_image, flip=True, threshold=400):
     w, h = input_image.size
-    rand_pix_size = randint(5, 10)
-    rand_block_size = randint(5, 10)
+    rand_pix_size = randint(5, 20)
+    rand_block_size = randint(10, 20)
     pixelated_img = pixelate(input_image, pixelsize=rand_pix_size)
     pix_block_mask = create_block_mask(pixelated_img, threshold=threshold, block_size=rand_block_size)
     if flip:
@@ -102,6 +102,9 @@ def random_pixel_mask(input_image, flip=True, threshold=400):
 
 def random_channel_merge(images):
     channels = []
+    if len(images) < 3:
+        print("Error: Need at least three input images in the directory")
+        exit(2)
     for image in sample(images, 3):
         for channel in image.split():
             channels.append(channel)
@@ -125,6 +128,8 @@ def twin_random_channel_pixel_masking(input_images, threshold=400):
 
 
 def glitch_art_generator(images, num_images=3, random_orientation=False, threshold=400):
+    # more randomisation in the functions. lip left right versus other orientation.
+    # random orientation
     #add the created images to the list
     image1 = twin_random_channel_pixel_masking(images, threshold=threshold)
     image2 = twin_random_channel_pixel_masking(images, threshold=(threshold/2))
@@ -139,7 +144,7 @@ def main():
     input_images = load_images(INPUT_DIR)
     input_images = resize_images(input_images, size="min")
     for x in range(0,NUM_IMAGES):
-        output = glitch_art_generator(input_images, NUM_IMAGES, True, threshold=THRESH_VAL)
+        output = glitch_art_generator(input_images, NUM_IMAGES, True, threshold=randint(150,THRESH_VAL))
         output.show()
         save_image(output, "gg_test")
 
