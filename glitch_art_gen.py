@@ -129,7 +129,7 @@ def twin_random_channel_pixel_masking(input_images, threshold=400):
 def glitch_art_generator(images, threshold=400):
     image1 = twin_random_channel_pixel_masking(images, threshold=threshold)
     image2 = twin_random_channel_pixel_masking(images, threshold=(threshold/2))
-    image1 = image1.transpose(choice([Image.FLIP_LEFT_RIGHT, Image.FLIP_TOP_BOTTOM]))
+    image1 = image1.transpose(Image.FLIP_LEFT_RIGHT)
     random_pix_mask = random_pixel_mask(image1, threshold=(threshold))
     output_image = combine_images_with_mask(image1, image2, random_pix_mask)
     return output_image
