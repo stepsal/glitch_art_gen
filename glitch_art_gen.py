@@ -140,14 +140,15 @@ def main():
     input_images = resize_images(input_images, size="fixed")
     for x in range(0,NUM_IMAGES):
         output = glitch_art_generator(input_images, threshold=randint(100,THRESH_VAL))
-        output.show()
+        if(SHOW_IMAGE):
+            output.show()
         save_image(output, "g_art_gen")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Glitch Art Generator')
     parser.add_argument("-n", "--numimages", dest="NUM_IMAGES", default=10, type=int, help="Number of Output Images")
-    parser.add_argument("-s", "--show_image", dest="SHOW_IMAGE", default=True, help="Display Images on Creation")
+    parser.add_argument("-s", "--show_image", dest="SHOW_IMAGE", action='store_true', default=False, help="Display Images on Creation")
     parser.add_argument("-t", "--threshold", dest="THRESH_VAL", default=400, type=int, help="Threshold Value")
     parser.add_argument("-i", "--input", dest="INPUT_DIR",
                         default="./input/", help="Image Input Directory")
