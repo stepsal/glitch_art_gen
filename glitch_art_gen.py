@@ -4,7 +4,7 @@
 import os
 from PIL import Image, ImageDraw, ImageOps
 import argparse
-from random import randint, random, sample, choice
+from random import randint, random, sample
 import binascii
 OUTPUT_FORMAT = ".png"
 IMAGE_FORMATS = ['.jpg', '.jpeg', '.png', '.tif', '.bmp', 'gif', 'tiff']
@@ -137,19 +137,20 @@ def glitch_art_generator(images, threshold=400):
 
 def main():
     input_images = load_images(INPUT_DIR)
-    input_images = resize_images(input_images, size="fixed")
+    input_images = resize_images(input_images, size=SIZE)
     for x in range(0,NUM_IMAGES):
         output = glitch_art_generator(input_images, threshold=randint(100,THRESH_VAL))
-        if(SHOW_IMAGE):
+        if SHOW_IMAGE:
             output.show()
         save_image(output, "g_art_gen")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Glitch Art Generator')
-    parser.add_argument("-n", "--numimages", dest="NUM_IMAGES", default=10, type=int, help="Number of Output Images")
-    parser.add_argument("-s", "--show_image", dest="SHOW_IMAGE", action='store_true', default=False, help="Display Images on Creation")
+    parser.add_argument("-n", "--numimages", dest="NUM_IMAGES", default=2, type=int, help="Number of Output Images")
+    parser.add_argument("-s", "--show_image", dest="SHOW_IMAGE", default=True, help="Display Images on Creation")
     parser.add_argument("-t", "--threshold", dest="THRESH_VAL", default=400, type=int, help="Threshold Value")
+    parser.add_argument("-sz", "--size", dest="SIZE", default='max', choices=['max','min','fixed'], help="Output Image dimensions")
     parser.add_argument("-i", "--input", dest="INPUT_DIR",
                         default="./input/", help="Image Input Directory")
     try:
@@ -163,5 +164,6 @@ if __name__ == "__main__":
     INPUT_DIR = args.INPUT_DIR
     SHOW_IMAGE = args.SHOW_IMAGE
     NUM_IMAGES = args.NUM_IMAGES
+    SIZE = args.SIZE
     main()
 
