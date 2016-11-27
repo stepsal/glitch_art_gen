@@ -148,7 +148,7 @@ def main():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Glitch Art Generator')
     parser.add_argument("-n", "--numimages", dest="NUM_IMAGES", default=10, type=int, help="Number of Output Images")
-    parser.add_argument("-s", "--show_image", dest="SHOW_IMAGE", default=True, help="Display Images on Creation")
+    parser.add_argument("-s", "--show_image", dest="SHOW_IMAGE", action='store_true', default=False, help="Display Images on Creation")
     parser.add_argument("-t", "--threshold", dest="THRESH_VAL", default=400, type=int, help="Threshold Value")
     parser.add_argument("-i", "--input", dest="INPUT_DIR",
                         default="./input/", help="Image Input Directory")
