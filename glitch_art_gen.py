@@ -2,9 +2,10 @@
 # script will read all images from an input directory and generate glicth art based on them
 
 import os
-from PIL import Image, ImageDraw, ImageOps
+from PIL import Image, ImageDraw, ImageOps, ImageChops
 import argparse
 from random import randint, random, sample
+from itertools import cycle
 import binascii
 OUTPUT_FORMAT = ".png"
 IMAGE_FORMATS = ['.jpg', '.jpeg', '.png', '.tif', '.bmp', 'gif', 'tiff']
@@ -81,17 +82,19 @@ def create_block_mask(image, threshold=500, block_size=10):
 
 
 def pixelate(input_image, pixelsize=20):
+    w,h = input_image.size
     input_image = input_image.resize((int(input_image.size[0] / pixelsize),
                                 int(input_image.size[1] / pixelsize)), Image.NEAREST)
     image = input_image.resize((int(input_image.size[0] * pixelsize),
                                 int(input_image.size[1] * pixelsize)), Image.NEAREST)
+    image = image.resize((w,h),3)
     return image
 
 
 def random_pixel_mask(input_image, flip=True, threshold=400):
     w, h = input_image.size
-    rand_pix_size = randint(5, 20)
-    rand_block_size = randint(5, 20)
+    rand_pix_size = randint(2, randint(10,40))
+    rand_block_size = randint(5, randint(10,40))
     pixelated_img = pixelate(input_image, pixelsize=rand_pix_size)
     pix_block_mask = create_block_mask(pixelated_img, threshold=threshold, block_size=rand_block_size)
     if flip:
@@ -126,12 +129,52 @@ def twin_random_channel_pixel_masking(input_images, threshold=400):
     return output_image
 
 
+def offset_image(image, offset=100):
+    return ImageChops.offset(image, offset)
+
+def self_glitch(image, offset=100, threshold=200):
+    offset = offset_image(image, offset=offset)
+    mask = random_pixel_mask(image, threshold=threshold)
+    output_image = combine_images_with_mask(offset, image, mask)
+    return output_image
+
+def get_horizontal_stripes(width, height, n):
+    """Yield a list of size n of horizontal stripe coordinates
+    for the image"""
+    for x in range(0, int(height), int(int(height) / int(n))):
+        yield (0, x, width, int(x + height / n))
+
+
+def splice_and_offset(image, no_of_splices=100, offset=100, scaling=2):
+    w,h = image.size
+    output_image = Image.new('RGB', (w, h))
+    #create an offset wave from offset * scaling
+    offset_wave = [0, 100, 200, 300, 200, 100]
+    cycle_wave = cycle(offset_wave)
+    for stripe_coord in get_horizontal_stripes(w, h, no_of_splices):
+        slice = image.crop(stripe_coord)
+        offset_slice = offset_image(slice, next(cycle_wave))
+        output_image.paste(offset_slice, stripe_coord)
+    return output_image
+
+
+
+
 def glitch_art_generator(images, threshold=400):
+    images[0] = splice_and_offset(images[0], no_of_splices=randint(10,100))
+    #images[2] = splice_and_offset(images[2], no_of_splices=100)
+
     image1 = twin_random_channel_pixel_masking(images, threshold=threshold)
     image2 = twin_random_channel_pixel_masking(images, threshold=(threshold/2))
+    image1 = self_glitch(image1, offset=100, threshold=400)
     image1 = image1.transpose(Image.FLIP_LEFT_RIGHT)
-    random_pix_mask = random_pixel_mask(image1, threshold=(threshold))
+    #image1 = splice_and_offset(image1, no_of_splices=10)
+
+    random_pix_mask = random_pixel_mask(images[0], threshold=(threshold))
+
     output_image = combine_images_with_mask(image1, image2, random_pix_mask)
+    # op = self_glitch(output_image, offset=100, threshold=400)
+    # op = splice_and_offset(output_image, no_of_splices=10)
     return output_image
 
 
@@ -147,12 +190,14 @@ def main():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Glitch Art Generator')
-    parser.add_argument("-n", "--numimages", dest="NUM_IMAGES", default=2, type=int, help="Number of Output Images")
-    parser.add_argument("-s", "--show_image", dest="SHOW_IMAGE", default=True, help="Display Images on Creation")
-    parser.add_argument("-t", "--threshold", dest="THRESH_VAL", default=400, type=int, help="Threshold Value")
+    parser.add_argument("-n", "--numimages", dest="NUM_IMAGES", default=10, type=int, help="Number of Output Images")
+    parser.add_argument("-s", "--show_image", dest="SHOW_IMAGE", action='store_true', default=True, help="Display Images on Creation")
+    parser.add_argument("-t", "--threshold", dest="THRESH_VAL", default=800, type=int, help="Threshold Value")
     parser.add_argument("-sz", "--size", dest="SIZE", default='max', choices=['max','min','fixed'], help="Output Image dimensions")
     parser.add_argument("-i", "--input", dest="INPUT_DIR",
-                        default="./input/", help="Image Input Directory")
+                        default="/home/stephen.salmon/Pictures/test_input/three", help="Image Input Directory")
+    #add output directory
+    #more options
     try:
         args = parser.parse_args()
     except:
