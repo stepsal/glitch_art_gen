@@ -15,6 +15,9 @@ optional arguments:
                         Display Images on Creation
   -t THRESH_VAL, --threshold THRESH_VAL
                         Threshold Value
+  -sz {max,min,fixed}, --size {max,min,fixed}
+                        Output Image dimensions
   -i INPUT_DIR, --input INPUT_DIR
                         Image Input Directory
+
 ```
