@@ -171,21 +171,14 @@ def splice_and_offset(image, no_of_splices=100, offset=100, scaling=2):
 
 def glitch_art_generator(images, threshold=400):
     images[0] = splice_and_offset(images[0], no_of_splices=randint(10,100))
-    #images[2] = splice_and_offset(images[2], no_of_splices=100)
-    # something_without_channels
-    # image1 = twin_random_channel_pixel_masking(images, threshold=threshold)
-    #image2 = twin_random_channel_pixel_masking(images, threshold=(threshold/2))
     image1 = something_without_channels(images, threshold=threshold)
-    image2 = something_without_channels(images, threshold=(threshold*2))
     image1 = self_glitch(image1, offset=100, threshold=400)
     image1 = image1.transpose(Image.FLIP_LEFT_RIGHT)
-    #image1 = splice_and_offset(image1, no_of_splices=10)
+    image2 = twin_random_channel_pixel_masking(images, threshold=(threshold / 2))
 
     random_pix_mask = random_pixel_mask(images[0], threshold=(threshold))
 
     output_image = combine_images_with_mask(image1, image2, random_pix_mask)
-    # op = self_glitch(output_image, offset=100, threshold=400)
-    # op = splice_and_offset(output_image, no_of_splices=10)
     return output_image
 
 
