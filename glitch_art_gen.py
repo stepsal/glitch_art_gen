@@ -14,12 +14,13 @@ IMAGE_FORMATS = ['.jpg', '.jpeg', '.png', '.tif', '.bmp', 'gif', 'tiff']
 def save_image(image, prefix):
     random_hash = str(binascii.b2a_hex(os.urandom(15)))[2:-1]
     output_image_name = prefix + "_" + random_hash + "_" + OUTPUT_FORMAT
-    output_dir = "output"
+    output_dir = "/home/stephen.salmon/Pictures/ggen/one"
     script_dir = os.path.dirname(os.path.abspath(__file__))
+    # output_dir_path = os.path.join(script_dir, output_dir)
     output_dir_path = os.path.join(script_dir, output_dir)
-    if not os.path.exists(output_dir_path):
-        os.makedirs(output_dir_path)
-    image_path = os.path.join(output_dir_path, output_image_name)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    image_path = os.path.join(output_dir, output_image_name)
     print("Image saved to {0}".format(image_path))
     image.save(image_path)
 
@@ -91,10 +92,10 @@ def pixelate(input_image, pixelsize=20):
     return image
 
 
-def random_pixel_mask(input_image, flip=True, threshold=400):
+def random_pixel_mask(input_image, flip=True, threshold=400, blockmax=50):
     w, h = input_image.size
-    rand_pix_size = randint(2, randint(10,40))
-    rand_block_size = randint(5, randint(10,40))
+    rand_pix_size = randint(2, randint(10,blockmax))
+    rand_block_size = randint(5, randint(10,blockmax))
     pixelated_img = pixelate(input_image, pixelsize=rand_pix_size)
     pix_block_mask = create_block_mask(pixelated_img, threshold=threshold, block_size=rand_block_size)
     if flip:
@@ -129,8 +130,16 @@ def twin_random_channel_pixel_masking(input_images, threshold=400):
     return output_image
 
 
+def something_without_channels(input_images, threshold=400):
+    frandimage = input_images[randint(0,len(input_images)-1)]
+    random_pix_mask = random_pixel_mask(frandimage, threshold=threshold)
+    output_image = combine_images_with_mask(frandimage, frandimage, random_pix_mask)
+    return output_image
+
+
 def offset_image(image, offset=100):
     return ImageChops.offset(image, offset)
+
 
 def self_glitch(image, offset=100, threshold=200):
     offset = offset_image(image, offset=offset)
@@ -163,9 +172,11 @@ def splice_and_offset(image, no_of_splices=100, offset=100, scaling=2):
 def glitch_art_generator(images, threshold=400):
     images[0] = splice_and_offset(images[0], no_of_splices=randint(10,100))
     #images[2] = splice_and_offset(images[2], no_of_splices=100)
-
-    image1 = twin_random_channel_pixel_masking(images, threshold=threshold)
-    image2 = twin_random_channel_pixel_masking(images, threshold=(threshold/2))
+    # something_without_channels
+    # image1 = twin_random_channel_pixel_masking(images, threshold=threshold)
+    #image2 = twin_random_channel_pixel_masking(images, threshold=(threshold/2))
+    image1 = something_without_channels(images, threshold=threshold)
+    image2 = something_without_channels(images, threshold=(threshold*2))
     image1 = self_glitch(image1, offset=100, threshold=400)
     image1 = image1.transpose(Image.FLIP_LEFT_RIGHT)
     #image1 = splice_and_offset(image1, no_of_splices=10)
@@ -192,7 +203,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Glitch Art Generator')
     parser.add_argument("-n", "--numimages", dest="NUM_IMAGES", default=10, type=int, help="Number of Output Images")
     parser.add_argument("-s", "--show_image", dest="SHOW_IMAGE", action='store_true', default=True, help="Display Images on Creation")
-    parser.add_argument("-t", "--threshold", dest="THRESH_VAL", default=800, type=int, help="Threshold Value")
+    parser.add_argument("-t", "--threshold", dest="THRESH_VAL", default=400, type=int, help="Threshold Value")
     parser.add_argument("-sz", "--size", dest="SIZE", default='max', choices=['max','min','fixed'], help="Output Image dimensions")
     parser.add_argument("-i", "--input", dest="INPUT_DIR",
                         default="/home/stephen.salmon/Pictures/test_input/three", help="Image Input Directory")
