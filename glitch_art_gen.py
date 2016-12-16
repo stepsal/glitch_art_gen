@@ -175,9 +175,7 @@ def glitch_art_generator(images, threshold=400):
     image1 = self_glitch(image1, offset=100, threshold=400)
     image1 = image1.transpose(Image.FLIP_LEFT_RIGHT)
     image2 = twin_random_channel_pixel_masking(images, threshold=(threshold / 2))
-
     random_pix_mask = random_pixel_mask(images[0], threshold=(threshold))
-
     output_image = combine_images_with_mask(image1, image2, random_pix_mask)
     return output_image
 
