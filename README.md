@@ -1,8 +1,8 @@
 # Glitch Art Generator
-Glitch Art Generator Written in Python by Stephen Salmon
+Glitch Art Generator Written in Python
 
-Slurps up all images in the input directory and generates an unlimited amount of glitch art from them.
-You need at least three pics in the input dir.
+Slurps up all images in the input directory and generates some glitch art from them.
+You'll need at least three pictures in the input dir.
 
 ##Usage
 
