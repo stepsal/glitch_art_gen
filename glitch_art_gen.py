@@ -1,4 +1,4 @@
-# glitch art generator written in pytho
+# glitch art generator written in python
 # script will read all images from an input directory and generate glitch art from them
 
 import os
