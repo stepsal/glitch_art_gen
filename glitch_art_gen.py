@@ -1,5 +1,5 @@
-# glitch art generator written in python by steephen salmon
-# script will read all images from an input directory and generate glicth art based on them
+# glitch art generator written in pytho
+# script will read all images from an input directory and generate glitch art from them
 
 import os
 from PIL import Image, ImageDraw, ImageOps
